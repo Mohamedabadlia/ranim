@@ -1,113 +1,415 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pour Ranim 🌙</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Poppins", sans-serif;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pour Ranim — Illusion & Fantasy</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#020317;
+    --bg2:#07112a;
+    --accent:#ffdff4;
+    --muted:#9fb0d8;
+    --glass: rgba(255,255,255,0.04);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; -webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(120,70,155,0.08), transparent 15%),
+      linear-gradient(180deg,var(--bg1),var(--bg2) 70%);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    overflow:hidden;
+  }
 
-    body {
-      height: 100vh;
-      background: radial-gradient(circle at top, #0a0f1c, #020409 90%);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
+  /* Stage */
+  .stage{
+    width:100%; max-width:1100px; aspect-ratio:16/9; position:relative; border-radius:18px;
+    overflow:hidden; box-shadow: 0 30px 120px rgba(2,6,23,0.85); border:1px solid rgba(255,255,255,0.03);
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.12));
+  }
 
-    .moon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 250px;
-      height: 250px;
-      margin: -125px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #fff, #cfcfcf 40%, #7b7b7b 60%, #2b2b2b 80%);
-      box-shadow: 0 0 80px 20px rgba(255, 255, 255, 0.2);
-      animation: float 6s ease-in-out infinite alternate;
-    }
+  /* starfield canvas */
+  canvas#starsCanvas{
+    position:absolute; inset:0; width:100%; height:100%; display:block; z-index:0; pointer-events:none;
+  }
 
-    @keyframes float {
-      from { transform: translate(-50%, -50%) scale(1); }
-      to { transform: translate(-50%, -60%) scale(1.05); }
-    }
+  /* subtle nebula */
+  .nebula{
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(600px 300px at 80% 20%, rgba(255,160,200,0.06), transparent 12%),
+      radial-gradient(800px 400px at 20% 80%, rgba(160,180,255,0.06), transparent 10%);
+    mix-blend-mode:screen;
+  }
 
-    .text {
-      position: relative;
-      text-align: center;
-      z-index: 2;
-      animation: fadeIn 3s ease forwards;
-      opacity: 0;
-    }
+  /* center area (interactive) */
+  .arena{
+    position:absolute; inset:0; z-index:1; display:flex; align-items:center; justify-content:center;
+    perspective:1200px;
+  }
 
-    .text h1 {
-      font-size: 3rem;
-      letter-spacing: 2px;
-      margin-bottom: 15px;
-      background: linear-gradient(90deg, #fff, #a0b7ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+  /* moon container */
+  .moon-viewport{
+    width:460px; height:460px; border-radius:50%; display:grid; place-items:center; position:relative;
+    will-change:transform; transform-style:preserve-3d;
+  }
 
-    .text p {
-      font-size: 1.2rem;
-      color: #bfc6d6;
-      letter-spacing: 1px;
-    }
+  /* moon main (3D illusion) */
+  .moon {
+    width:84%; height:84%; border-radius:50%; position:relative; overflow:hidden; transform-style:preserve-3d;
+    transition: transform 0.35s cubic-bezier(.2,.9,.25,1);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.75), inset -20px -10px 60px rgba(0,0,0,0.45);
+    background: radial-gradient(circle at 28% 26%, #fff 0%, #e6e6e6 12%, #bdbdbd 36%, #6b6b6b 66%, #111 100%);
+  }
 
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
+  /* three variants use CSS variables toggled by JS */
+  .moon[data-variant="pink"]{ background:
+    radial-gradient(circle at 28% 26%, #fff6fb 0%, #ffdff4 12%, #ffbcd9 34%, #d0799a 62%, #2b0711 100%); }
+  .moon[data-variant="bright"]{ background:
+    radial-gradient(circle at 28% 26%, #ffffff 0%, #f7fbff 14%, #e6f1ff 40%, #cfe6ff 72%, #9dbdff 100%); }
 
-    .stars {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      overflow: hidden;
-    }
+  /* procedural craters using layered radial-gradients */
+  .moon::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background-image:
+      radial-gradient(circle at 22% 20%, rgba(0,0,0,0.07) 0 5%, transparent 6%),
+      radial-gradient(circle at 66% 60%, rgba(0,0,0,0.05) 0 8%, transparent 9%),
+      radial-gradient(circle at 52% 36%, rgba(0,0,0,0.045) 0 5%, transparent 6%),
+      radial-gradient(circle at 36% 74%, rgba(0,0,0,0.04) 0 7%, transparent 7.5%),
+      radial-gradient(circle at 44% 44%, rgba(255,255,255,0.05) 0 3%, transparent 3.6%);
+    mix-blend-mode:multiply; opacity:0.95; transform: translateZ(30px);
+    filter: blur(0.4px);
+  }
 
-    .stars span {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: white;
-      opacity: 0.8;
-      border-radius: 50%;
-      animation: blink 3s infinite ease-in-out;
-    }
+  /* soft surface noise overlay (svg data) */
+  .moon .noise{
+    position:absolute; inset:0; border-radius:50%; pointer-events:none; mix-blend-mode:overlay; opacity:0.28;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='t'><feTurbulence baseFrequency='0.9' numOctaves='1' seed='8' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23t)' fill='%23fff' opacity='0.03'/></svg>");
+    transform: translateZ(60px) scale(1.02);
+  }
 
-    @keyframes blink {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 1; }
-    }
-  </style>
+  /* gloss highlight that sweeps */
+  .moon .gloss{
+    position:absolute; top:-30%; left:-20%; width:140%; height:140%; border-radius:50%; pointer-events:none;
+    background: linear-gradient(120deg, rgba(255,255,255,0.24), rgba(255,255,255,0.0) 30%);
+    filter: blur(18px);
+    transform: translateZ(80px) rotateZ(-12deg);
+    opacity:0.95;
+    animation: glossSweep 8s linear infinite;
+  }
+  @keyframes glossSweep{
+    0%{ transform: translateZ(80px) rotateZ(-18deg) translateX(-30%); opacity:0 }
+    10%{ opacity:0.9 }
+    50%{ transform: translateZ(80px) rotateZ(-12deg) translateX(30%); opacity:0.95 }
+    90%{ opacity:0.6 }
+    100%{ transform: translateZ(80px) rotateZ(-6deg) translateX(90%); opacity:0 }
+  }
+
+  /* halo & bloom */
+  .halo{
+    position:absolute; inset:-24%; border-radius:50%; filter: blur(36px); pointer-events:none;
+    background: radial-gradient(circle at 50% 50%, rgba(255,220,255,0.10), transparent 30%);
+    mix-blend-mode:screen; opacity:0.95;
+    transition: opacity .35s;
+  }
+  .moon[data-variant="bright"] + .halo{ background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.28), transparent 40%); }
+  .moon[data-variant="pink"] + .halo{ background: radial-gradient(circle at 50% 50%, rgba(255,150,190,0.20), transparent 40%); }
+
+  /* pop / 3D extrusion (illusion) controlled by JS transforms on .moon-viewport */
+  .moon-viewport.pop { transform: translateZ(60px) scale(1.06); filter:drop-shadow(0 50px 140px rgba(0,0,0,0.6)); transition: transform .35s cubic-bezier(.2,.9,.25,1) }
+
+  /* caption text (French) */
+  .card{
+    position:absolute; right:6%; top:14%; width:360px; z-index:6; text-align:right; pointer-events:none;
+  }
+  .card .headline{ font-size:38px; font-weight:800; margin:0 0 6px; letter-spacing:1px; opacity:0; transform:translateY(18px); animation: revealText 1s ease .9s forwards }
+  .card .sub{ color:var(--muted); font-size:15px; font-weight:600; opacity:0; transform:translateY(10px); animation: revealText 1s ease 1.3s forwards }
+  @keyframes revealText{ to { opacity:1; transform:translateY(0) } }
+
+  /* bottom center big message (glow) */
+  .message{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:8%; z-index:6; text-align:center;
+    font-weight:700; font-size:20px; text-shadow: 0 10px 40px rgba(0,0,0,0.6); opacity:0; transition: opacity .6s;
+  }
+  .message.glow{ color:var(--accent); text-shadow: 0 8px 22px rgba(255,200,230,0.18), 0 0 40px rgba(255,160,200,0.06); opacity:1 }
+
+  /* UI controls */
+  .ui{ position:absolute; left:6%; bottom:6%; z-index:7; display:flex; gap:10px; pointer-events:auto }
+  .btn{ background:var(--glass); border:1px solid rgba(255,255,255,0.04); color:var(--accent); padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer; backdrop-filter: blur(6px) }
+  .hint{ position:absolute; left:6%; top:6%; color:var(--muted); font-size:13px; z-index:7 }
+
+  /* touch hover helpers */
+  .stage.touch-active .hint{ opacity:0.2; transition:opacity .3s }
+
+  /* responsive */
+  @media (max-width:900px){
+    .card{ display:none }
+    .moon-viewport{ width:360px; height:360px }
+  }
+  @media (max-width:480px){
+    .moon-viewport{ width:300px; height:300px }
+    .card{ display:none }
+    .message{ font-size:16px; bottom:6% }
+  }
+</style>
 </head>
 <body>
-  <div class="stars" id="stars"></div>
-  <div class="moon"></div>
-  <div class="text">
-    <h1>Ranim...</h1>
-    <p>tu ressembles à la lune.<br>.</p>
+  <div class="stage" id="stage" aria-label="Illusion lunaire pour Ranim">
+    <canvas id="starsCanvas" aria-hidden="true"></canvas>
+    <div class="nebula" aria-hidden="true"></div>
+
+    <div class="arena" id="arena">
+      <div class="moon-viewport" id="viewport" aria-hidden="false" role="img" aria-label="La lune">
+        <div class="moon" id="moon" data-variant="pink" aria-hidden="false" tabindex="0">
+          <div class="noise" aria-hidden="true"></div>
+          <div class="gloss" aria-hidden="true"></div>
+        </div>
+        <div class="halo" id="halo" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="card" aria-hidden="false">
+      <div class="headline">Ranim...</div>
+      <div class="sub">Tu n'es pas la lune. Tu lui ressembles, simplement.</div>
+    </div>
+
+    <div class="message" id="message">Passe ta souris / touche pour voir l'illusion</div>
+
+    <div class="ui">
+      <button class="btn" id="prevBtn" title="Précédent">◀</button>
+      <button class="btn" id="playBtn" title="Lecture">Lecture</button>
+      <button class="btn" id="muteBtn" title="Muet">Muet</button>
+      <button class="btn" id="nextBtn" title="Suivant">▶</button>
+    </div>
+
+    <div class="hint" id="hint">Touchez ou bougez la souris — changement de teinte et profondeur</div>
+
+    <!-- audio: mixkit ambient direct mp3 (مثال) - يمكن تغييره -->
+    <audio id="bgAudio" loop preload="auto" crossorigin="anonymous">
+      <source src="https://assets.mixkit.co/music/preview/mixkit-staring-at-the-night-sky-168.mp3" type="audio/mpeg">
+      Your browser does not support audio.
+    </audio>
   </div>
 
-  <script>
-    const stars = document.getElementById("stars");
-    for (let i = 0; i < 80; i++) {
-      const star = document.createElement("span");
-      star.style.top = Math.random() * 100 + "%";
-      star.style.left = Math.random() * 100 + "%";
-      star.style.animationDelay = Math.random() * 3 + "s";
-      stars.appendChild(star);
-    }
-  </script>
+<script>
+/* =========================
+   Features implemented:
+   - stars canvas with parallax reacting to mouse/touch
+   - moon 3 variants: pink / normal (grey) / bright (white)
+   - moon pop-out 3D effect following pointer with smoothing
+   - gloss sweep + halo + noise (CSS)
+   - controls: prev/play/mute/next
+   - audio unlock on first interaction
+   ========================= */
+
+/* ---------- config & state ---------- */
+const variants = ['pink','normal','bright'];
+let current = 0; // start with pink (index 0)
+const arena = document.getElementById('arena');
+const viewport = document.getElementById('viewport');
+const moon = document.getElementById('moon');
+const halo = document.getElementById('halo');
+const message = document.getElementById('message');
+const hint = document.getElementById('hint');
+
+const audio = document.getElementById('bgAudio');
+const playBtn = document.getElementById('playBtn');
+const muteBtn = document.getElementById('muteBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+/* choose starting variant */
+function applyVariant(i){
+  current = (i + variants.length) % variants.length;
+  moon.setAttribute('data-variant', variants[current]);
+  // halo color intensity
+  halo.style.opacity = current === 2 ? '0.95' : (current === 0 ? '0.88' : '0.72');
+  // subtle message per variant
+  const texts = [
+    {title:"Tu deviens presque un rêve rose.", sub:"Douce. Étrange. Présente."},
+    {title:"Tu ressembles à la lune normale.", sub:"Calme. Silencieuse. Observable."},
+    {title:"Tu brilles trop clairement.", sub:"Blanche. Tranchante. Distante."}
+  ];
+  document.querySelector('.headline').textContent = texts[current].title.split('.')[0] || 'Ranim...';
+  document.querySelector('.sub').textContent = texts[current].sub || '';
+  // small pop
+  viewport.classList.add('pop');
+  setTimeout(()=> viewport.classList.remove('pop'), 420);
+}
+applyVariant(0);
+
+/* ---------- audio controls & unlock ---------- */
+let isPlaying=false, isMuted=false;
+async function tryPlay(){
+  try{
+    await audio.play();
+    isPlaying = true; playBtn.textContent = 'Pause';
+  }catch(e){
+    isPlaying = false; playBtn.textContent = 'Lecture';
+  }
+}
+function pauseAudio(){ audio.pause(); isPlaying=false; playBtn.textContent='Lecture'; }
+playBtn.addEventListener('click', async ()=> { if(isPlaying) pauseAudio(); else await tryPlay(); });
+muteBtn.addEventListener('click', ()=> { isMuted = !isMuted; audio.muted = isMuted; muteBtn.textContent = isMuted ? 'Son' : 'Muet'; });
+
+function unlockAudioOnGesture(){
+  document.removeEventListener('pointerdown', unlockAudioOnGesture);
+  document.removeEventListener('touchstart', unlockAudioOnGesture);
+  tryPlay();
+}
+document.addEventListener('pointerdown', unlockAudioOnGesture, {passive:true});
+document.addEventListener('touchstart', unlockAudioOnGesture, {passive:true});
+
+/* prev/next */
+prevBtn.addEventListener('click', ()=> applyVariant(current-1));
+nextBtn.addEventListener('click', ()=> applyVariant(current+1));
+
+/* ---------- pointer-based parallax & illusion ---------- */
+let mouse = {x:0,y:0};
+let sm = {x:0,y:0}; // smooth
+const friction = 0.12;
+
+function onPointerMove(px, py){
+  const rect = arena.getBoundingClientRect();
+  // normalize -0.5..0.5
+  const nx = (px - rect.left) / rect.width - 0.5;
+  const ny = (py - rect.top) / rect.height - 0.5;
+  mouse.x = nx; mouse.y = ny;
+  // hint fade
+  message.classList.add('glow');
+  hint.style.opacity = 0.25;
+}
+
+function onPointer(e){
+  if(e.touches && e.touches.length) onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+  else onPointerMove(e.clientX, e.clientY);
+}
+arena.addEventListener('pointermove', onPointer, {passive:true});
+arena.addEventListener('touchmove', onPointer, {passive:true});
+arena.addEventListener('mouseenter', (e)=> { message.classList.add('glow'); hint.style.opacity=0.35; });
+arena.addEventListener('mouseleave', ()=> { message.classList.remove('glow'); hint.style.opacity=1; });
+
+/* animation loop for smoothing & applying transforms */
+function raf(){
+  sm.x += (mouse.x - sm.x) * friction;
+  sm.y += (mouse.y - sm.y) * friction;
+
+  // transform viewport to create pop-out following pointer
+  const rotateX = sm.y * 12; // tilt
+  const rotateY = sm.x * -18;
+  const translateZ = 40 + Math.abs(sm.x)*30 + Math.abs(sm.y)*30;
+  viewport.style.transform = `translateZ(${translateZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+  // subtle moon parallax (inner movement)
+  const innerX = sm.x * 18;
+  const innerY = sm.y * -12;
+  moon.style.transform = `translate3d(${innerX}px, ${innerY}px, 40px)`;
+
+  // halo shift
+  halo.style.transform = `translate3d(${innerX*0.6}px, ${innerY*0.6}px, 30px)`;
+
+  // message subtle parallax
+  message.style.transform = `translateX(${sm.x*18}px) translateY(${sm.y*12}px)`;
+
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+/* ---------- stars canvas (particles respond to pointer) ---------- */
+const canvas = document.getElementById('starsCanvas');
+const ctx = canvas.getContext('2d');
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+function resizeCanvas(){
+  canvas.width = canvas.clientWidth * DPR;
+  canvas.height = canvas.clientHeight * DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+/* star particles */
+const stars = [];
+const STAR_COUNT = 240;
+for(let i=0;i<STAR_COUNT;i++){
+  stars.push({
+    x: Math.random()*canvas.clientWidth,
+    y: Math.random()*canvas.clientHeight,
+    z: 0.2 + Math.random()*1.2,
+    r: Math.random()*1.6 + 0.4,
+    baseOpacity: 0.15 + Math.random()*0.8,
+    vx: 0, vy: 0
+  });
+}
+
+function drawStars(){
+  ctx.clearRect(0,0,canvas.clientWidth, canvas.clientHeight);
+  // subtle parallax influenced by sm
+  const windX = sm.x * 40;
+  const windY = sm.y * -40;
+  for(const s of stars){
+    // move a little for life
+    s.vx += (windX * 0.002 - s.vx) * 0.06;
+    s.vy += (windY * 0.002 - s.vy) * 0.06;
+    s.x += s.vx * (0.6 + s.z);
+    s.y += s.vy * (0.6 + s.z);
+    // wrap
+    if(s.x < -10) s.x = canvas.clientWidth + 10;
+    if(s.x > canvas.clientWidth + 10) s.x = -10;
+    if(s.y < -10) s.y = canvas.clientHeight + 10;
+    if(s.y > canvas.clientHeight + 10) s.y = -10;
+
+    const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*8);
+    const op = Math.min(1, s.baseOpacity + Math.abs(sm.x)*0.2 + Math.abs(sm.y)*0.2);
+    grd.addColorStop(0, `rgba(255,255,255,${op})`);
+    grd.addColorStop(0.5, `rgba(255,240,250,${op*0.28})`);
+    grd.addColorStop(1, `rgba(200,220,255,0)`);
+    ctx.beginPath();
+    ctx.fillStyle = grd;
+    ctx.arc(s.x, s.y, s.r*6, 0, Math.PI*2);
+    ctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+requestAnimationFrame(drawStars);
+
+/* ---------- keyboard and click sides to change variant ---------- */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowLeft') applyVariant(current-1);
+  if(e.key === 'ArrowRight') applyVariant(current+1);
+  if(e.key === ' '){ e.preventDefault(); if(isPlaying) pauseAudio(); else tryPlay(); }
+});
+
+/* on tap left/right for mobile - split stage into thirds */
+document.getElementById('stage').addEventListener('click', (ev)=>{
+  const rect = ev.currentTarget.getBoundingClientRect();
+  const x = ev.clientX - rect.left;
+  if(x < rect.width*0.33) applyVariant(current-1);
+  else if(x > rect.width*0.66) applyVariant(current+1);
+});
+
+/* accessibility: focus */
+moon.addEventListener('focus', ()=> message.classList.add('glow'));
+moon.addEventListener('blur', ()=> message.classList.remove('glow'));
+
+/* friendly intro animation */
+window.addEventListener('load', ()=>{
+  // small pop intro
+  viewport.classList.add('pop');
+  setTimeout(()=> viewport.classList.remove('pop'), 800);
+  // show message briefly
+  message.classList.add('glow');
+  setTimeout(()=> message.classList.remove('glow'), 2800);
+});
+
+/* unlock touch helper for mobile */
+document.addEventListener('touchstart', ()=> {
+  document.getElementById('stage').classList.add('touch-active');
+  setTimeout(()=> document.getElementById('stage').classList.remove('touch-active'), 2200);
+},{passive:true});
+<audio id="bg-music" src="music.mp3" autoplay loop></audio>
+</script>
 </body>
 </html>
