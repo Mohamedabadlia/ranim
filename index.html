@@ -1,335 +1,113 @@
-<!doctype html>
-<html lang="ar">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ranim are you gay??</title>
-<style>
-  :root{
-    --bg:#0f1724;
-    --card:#0b1220;
-    --accent: #7c3aed;
-  }
-  html,body{
-    height:100%;
-    margin:0;
-    font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: linear-gradient(180deg, #0b1220 0%, #071227 100%);
-    color:#fff;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pour Ranim 🌙</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
 
-  .wrap{
-    min-height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-    box-sizing:border-box;
-  }
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at top, #0a0f1c, #020409 90%);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
 
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-    border-radius:14px;
-    padding:28px;
-    width:100%;
-    max-width:560px;
-    text-align:center;
-    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-  }
+    .moon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 250px;
+      margin: -125px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #cfcfcf 40%, #7b7b7b 60%, #2b2b2b 80%);
+      box-shadow: 0 0 80px 20px rgba(255, 255, 255, 0.2);
+      animation: float 6s ease-in-out infinite alternate;
+    }
 
-  h1{
-    margin:0 0 18px 0;
-    font-size:28px;
-    line-height:1.1;
-  }
+    @keyframes float {
+      from { transform: translate(-50%, -50%) scale(1); }
+      to { transform: translate(-50%, -60%) scale(1.05); }
+    }
 
-  p.lead{
-    margin:0 0 26px 0;
-    color: #cbd5e1;
-  }
+    .text {
+      position: relative;
+      text-align: center;
+      z-index: 2;
+      animation: fadeIn 3s ease forwards;
+      opacity: 0;
+    }
 
-  .buttons{
-    position:relative;
-    height:120px; /* area where the "No" button can move */
-  }
+    .text h1 {
+      font-size: 3rem;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, #fff, #a0b7ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-  button{
-    font-size:18px;
-    padding:12px 20px;
-    border-radius:10px;
-    border:0;
-    cursor:pointer;
-    user-select:none;
-    transition: transform .12s ease, box-shadow .12s ease;
-    box-shadow: 0 6px 18px rgba(2,6,23,0.35);
-  }
+    .text p {
+      font-size: 1.2rem;
+      color: #bfc6d6;
+      letter-spacing: 1px;
+    }
 
-  .yes{
-    background: linear-gradient(90deg,#06b6d4,#7c3aed);
-    color:#fff;
-    margin-right:14px;
-  }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
 
-  .no{
-    background: #111827;
-    color:#f8fafc;
-    position:absolute;
-    left: calc(50% + 80px);
-    top: 40px;
-  }
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+    }
 
-  .small{
-    font-size:12px;
-    opacity:.8;
-    margin-top:16px;
-    color:#94a3b8;
-  }
+    .stars span {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      opacity: 0.8;
+      border-radius: 50%;
+      animation: blink 3s infinite ease-in-out;
+    }
 
-  /* Fullscreen overlay that appears when "Yes" is clicked */
-  .overlay{
-    position:fixed;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
-    backdrop-filter: blur(6px) saturate(1.1);
-  }
-
-  .overlay.show{
-    display:flex;
-  }
-
-  .overlay .content{
-    position:relative;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-  }
-
-  /* big image (we use inline SVG styling as a cover) */
-  .cover{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.35));
-  }
-
-  .cover svg{
-    width:40vmin;
-    height:40vmin;
-    max-width:420px;
-    max-height:420px;
-    filter: drop-shadow(0 12px 30px rgba(2,6,23,0.6));
-  }
-
-  .cover h2{
-    margin-top:18px;
-    font-size:34px;
-    letter-spacing:1px;
-    text-transform:none;
-  }
-
-  /* flying flags */
-  .flag{
-    position:absolute;
-    bottom:-80px;
-    font-size:26px;
-    will-change: transform, opacity;
-    pointer-events:none;
-    animation-name:fly;
-    animation-timing-function: linear;
-    animation-iteration-count: 1;
-  }
-
-  @keyframes fly{
-    0% { transform: translateY(0) rotate(0deg); opacity:1;}
-    20% { transform: translateY(-20vh) rotate(5deg);}
-    50% { transform: translateY(-45vh) rotate(-12deg); }
-    80% { transform: translateY(-80vh) rotate(8deg); opacity: .9; }
-    100% { transform: translateY(-120vh) rotate(20deg); opacity:0; }
-  }
-
-  /* subtle close button */
-  .close-btn{
-    position:absolute;
-    top:18px;
-    right:18px;
-    background: rgba(255,255,255,0.08);
-    border-radius:10px;
-    padding:8px 12px;
-    color:#fff;
-    border: 1px solid rgba(255,255,255,0.06);
-    cursor:pointer;
-    z-index:20;
-  }
-
-  /* make layout nicer on mobile */
-  @media (max-width:520px){
-    .buttons{ height:140px; }
-    .no{ left: calc(50% + 50px); top: 60px; }
-    .yes{ margin-right:0; margin-bottom:12px; width:48%; }
-    .no{ width:48%; position:static; display:inline-block; transform:none; }
-    .card{ padding:20px; }
-  }
-</style>
+    @keyframes blink {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card" role="main" aria-labelledby="q">
-      <h1 id="q">ranim <em>are you gay??</em></h1>
-      <p class="lead"></p>
-
-      <div class="buttons" id="buttonArea" aria-hidden="false">
-        <button class="yes" id="yesBtn" aria-label="yes">yes</button>
-        <button class="no" id="noBtn" aria-label="no">no</button>
-      </div>
-
-      <div class="small"> from mohamed</div>
-    </div>
+  <div class="stars" id="stars"></div>
+  <div class="moon"></div>
+  <div class="text">
+    <h1>Ranim...</h1>
+    <p>tu ressembles à la lune.<br>.</p>
   </div>
 
-  <!-- Overlay shown when "Yes" clicked -->
-  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="content">
-      <button class="close-btn" id="closeOverlay" aria-label="إغلاق">✕</button>
-
-      <div class="cover" id="cover">
-        <!-- Inline SVG as "الصورة" التي تغطي الشاشة -->
-       
-  <img src="download.jfif" alt="image" class="cover-img">
-
-        <h2>i know that hhhhhhh</h2>
-      </div>
-    </div>
-  </div>
-
-<script>
-(function(){
-  const noBtn = document.getElementById('noBtn');
-  const yesBtn = document.getElementById('yesBtn');
-  const buttonArea = document.getElementById('buttonArea');
-  const overlay = document.getElementById('overlay');
-  const cover = document.getElementById('cover');
-  const closeOverlay = document.getElementById('closeOverlay');
-
-  // Utility: get random integer between min and max
-  function rand(min, max){
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  // Move the "No" button to a random position within buttonArea
-  function moveNoButton(){
-    const areaRect = buttonArea.getBoundingClientRect();
-    const btnRect = noBtn.getBoundingClientRect();
-
-    // compute available space inside area
-    const padding = 6;
-    const maxX = Math.max(0, areaRect.width - btnRect.width - padding);
-    const maxY = Math.max(0, areaRect.height - btnRect.height - padding);
-
-    // choose a random position
-    const x = rand(0, Math.floor(maxX));
-    const y = rand(0, Math.floor(maxY));
-
-    noBtn.style.left = x + 'px';
-    noBtn.style.top = y + 'px';
-    noBtn.style.transform = `translateZ(0) scale(${(Math.random()*0.08)+0.96})`;
-  }
-
-  // Try to be playful: move on mouseenter too (makes it harder)
-  noBtn.addEventListener('mouseenter', moveNoButton);
-  // required per user: also move when clicked
-  noBtn.addEventListener('click', function(e){
-    e.preventDefault();
-    moveNoButton();
-  });
-
-  // Center initial positions nicely (so layout looks good)
-  window.addEventListener('load', function(){
-    // position NO near the right side initially
-    const areaRect = buttonArea.getBoundingClientRect();
-    const btnRect = noBtn.getBoundingClientRect();
-    noBtn.style.left = Math.max(0, (areaRect.width/2) + 80) + 'px';
-    noBtn.style.top = (areaRect.height/2 - btnRect.height/2) + 'px';
-  });
-
-  // Show overlay when Yes clicked
-  yesBtn.addEventListener('click', function(){
-    overlay.classList.add('show');
-    overlay.setAttribute('aria-hidden','false');
-
-    // spawn multiple flags that fly upward
-    spawnFlags(18);
-  });
-
-  // Close overlay
-  closeOverlay.addEventListener('click', hideOverlay);
-  overlay.addEventListener('click', function(e){
-    if(e.target === overlay) hideOverlay();
-  });
-
-  function hideOverlay(){
-    overlay.classList.remove('show');
-    overlay.setAttribute('aria-hidden','true');
-    // remove any remaining flags
-    document.querySelectorAll('.flag').forEach(f => f.remove());
-  }
-
-  // Spawn n flags with random positions/duration
-  function spawnFlags(n){
-    for(let i=0;i<n;i++){
-      createFlag(i);
+  <script>
+    const stars = document.getElementById("stars");
+    for (let i = 0; i < 80; i++) {
+      const star = document.createElement("span");
+      star.style.top = Math.random() * 100 + "%";
+      star.style.left = Math.random() * 100 + "%";
+      star.style.animationDelay = Math.random() * 3 + "s";
+      stars.appendChild(star);
     }
-  }
-
-  function createFlag(i){
-    const f = document.createElement('div');
-    f.className = 'flag';
-    // Use the rainbow flag emoji
-    f.textContent = '🏳️‍🌈';
-    // random left across the screen
-    const left = Math.random() * 110; // percent (may go slightly off-screen)
-    f.style.left = left + 'vw';
-
-    // slightly random delay so they don't all start at once
-    const delay = (Math.random() * 0.8).toFixed(2) + 's';
-    const dur = (rand(3500,7000)/1000).toFixed(2) + 's'; // 3.5s - 7s
-
-    f.style.animationDuration = dur;
-    f.style.animationDelay = delay;
-
-    // random rotation and scale
-    const scale = (Math.random()*0.7) + 0.8;
-    f.style.transform = `scale(${scale})`;
-
-    // add to overlay (so it flies over everything)
-    document.body.appendChild(f);
-
-    // remove after animation ends
-    f.addEventListener('animationend', ()=> f.remove());
-  }
-
-  // Accessibility: keyboard support
-  noBtn.addEventListener('keydown', function(e){
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      moveNoButton();
-    }
-  });
-  yesBtn.addEventListener('keydown', function(e){
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      yesBtn.click();
-    }
-  });
-
-})();
-</script>
+  </script>
 </body>
 </html>
